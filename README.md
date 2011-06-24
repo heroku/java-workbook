@@ -53,7 +53,7 @@ Now lets create a very simple Java app.  In your project directory create a tree
 
     src/main/java/helloheroku
 
-In that directory create a new file named `HelloWorld.java` containing the following Servlet code:
+In that directory create a new file named `HelloWorld.java` containing the following code:
 
     package helloheroku;
 
@@ -132,7 +132,7 @@ That instructs git to push the app to the heroku remote repo and the master bran
 
 This indicates that everything was built correctly and that the application is ready to run on the Cloud.  In order to run the application on Heroku we need to send a command to Heroku that will start the process.  To do that we use the `heroku run` command with an argument telling Heroku what to do:
 
-    heroku run "java -cp target/helloworld-1.0-SNAPSHOT.jar helloheroku.HelloWorld"
+    heroku run "java -Xmx64M -cp target/helloworld-1.0-SNAPSHOT.jar helloheroku.HelloWorld"
 
 Heroku will now start-up a Dyno for you with your application on it and then run the specified command.  You should again see `hello, world` but this time the it's coming from the Cloud!
 
