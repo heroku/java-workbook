@@ -1,3 +1,4 @@
+
 Java on Heroku Workbook
 =======================
 
@@ -94,7 +95,8 @@ In that directory create a new file named "HelloWorld.java" containing the follo
 
 That is a very simple servlet that just handles HTTP GET requests and returns a simple string.
 
-To configure the web application to direct requests to the HelloWorld Servlet we need a web.xml file.  Create the following new directory tree in your main project directory:  
+To configure the web application to direct requests to the HelloWorld Servlet we need a web.xml file.  Create the following new directory tree in your main project directory:
+
     src/main/webapp/WEB-INF
 
 In that directory create a the web.xml file with the following contents:
