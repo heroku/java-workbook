@@ -1,8 +1,7 @@
-
 Java on Heroku Workbook
 =======================
 
-This workbook will walk you through the steps to build Java applications that can run on the Heroku Cloud.  Before you get started there is some terminology that will be helpful to know.
+This workbook will walk you through the steps to build Java applications that can run on Heroku.  Before you get started there is some terminology that will be helpful to know.
 
 PaaS - "Platform as a Service" is a general term for managed environments that run applications.
 
@@ -16,90 +15,104 @@ Heroku Add-on - The primary way Heroku can be extended.  Add-on's are exposed as
 
 Dyno -  The isolated container that runs your web and other processes on Heroku.
 
+Prerequisites
+-------------
 
-Tutorial 1: Hello, World
-------------------------
+Before you get started with these tutorials you will need to setup your environment.  Make sure you do each of the following:
 
-As we dive into Java on Heroku lets begin with the simplest thing that could possibly work.  In this example we will simply create a standard JAR-packaged application that will just write "hello, world" to the console.  Then we will deploy that application on Heroku.
+* Create an account on Heroku.com
+* Install the Heroku command line client (Appendix A)
+* Install the git tool (Appendix B)
+* Create an SSH key and associate it with your Heroku account (Appendix B)
+* Install Maven 3 (Appendix C)
 
-Before you get started you will need the following prerequisites:
 
-* An account on Heroku.com
-* The Heroku command line client installed (Appendix A)
-* The git tool installed (Appendix B)
-* An SSH key created and associated with your Heroku account (Appendix C)
-* Maven 3 installed (Appendix D)
+Tutorial 01: Hello, World
+-------------------------
 
-### Building the App
+In this tutorial you will create and deploy the simplest application that could possibly work - a standard JAR-packaged application that writes "hello, world" to the console.  This, and all subsequent tutorials, assume that you have installed all the prerequisites.
+### Create and Package a Java App
 
-Once you have everything ready to go, create a new project directory named `helloheroku` somewhere on your system.  In that directory create a file named `pom.xml` that will contain the Maven build information.  We need a `pom.xml` because Heroku will actually build the application for cloud deployment.  The `pom.xml` will contain the instructions for how to do the build.  We can't just send Heroku a pre-packaged application because the application needs to instrumented in such a way that Heroku can manage the environment variables and other configuration needed for managing deployment of the application.  In the `pom.xml` file add the following contents:
+Once you have all of the prerequisites setup follow the steps below.
+
+Step 1) Create a new project directory named `helloheroku` somewhere on your system.
+
+Step 2) In your project directory create a tree of new directories:
+
+    src/main/java/helloheroku
+
+Step 3) In that directory create a new file named `HelloWorld.java` containing the following code:
+
+   package helloheroku;
+   
+   public class HelloWorld
+   {
+          public static void main(String[] args)
+       {
+           System.out.println("hello, world");
+       }
+   }
+
+That is a very simple class that just returns a simple string.
+
+Step 4) In the main project directory create a text file named `pom.xml` that will contain the Maven build information.  We need a `pom.xml` because Heroku will actually build the application for cloud deployment.  The `pom.xml` will contain the instructions for how to do the build.  We can't just send Heroku a pre-packaged application because the application needs to instrumented in such a way that Heroku can manage the environment variables and other configuration needed for managing deployment of the application.  In the `pom.xml` file add the following contents:
 
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <project xmlns="http://maven.apache.org/POM/4.0.0"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>helloheroku</groupId>
-        <artifactId>helloworld</artifactId>
-        <packaging>jar</packaging>
-        <version>1.0-SNAPSHOT</version>
+       <modelVersion>4.0.0</modelVersion>
+       <groupId>helloheroku</groupId>
+       <artifactId>helloworld</artifactId>
+       <packaging>jar</packaging>
+       <version>1.0-SNAPSHOT</version>
 
     </project>
 
 This Maven build file contains the minimum configuration needed to have Maven compile a JAR for us.
 
-Now lets create a very simple Java app.  In your project directory create a tree of new directories:
 
-    src/main/java/helloheroku
+Step 5) Compile the class into a JAR run the `package` Maven goal:
 
-In that directory create a new file named `HelloWorld.java` containing the following code:
+   mvn package
 
-    package helloheroku;
+This creates the `target/helloworld-1.0-SNAPSHOT.jar` file containing the HelloWorld class.
 
-    public class HelloWorld
-    {
-        public static void main(String[] args)
-        {
-            System.out.println("hello, world");
-        }
-    }
+Step 6) Run that class:
 
-That is a very simple class that just returns a simple string.  To compile the class into a JAR run the `package` Maven goal:
-
-    mvn package
-
-This creates the `target/helloworld-1.0-SNAPSHOT.jar` file containing the HelloWorld class.  Now run that class:
-
-    java -cp target/helloworld-1.0-SNAPSHOT.jar helloheroku.HelloWorld
+   java -cp target/helloworld-1.0-SNAPSHOT.jar helloheroku.HelloWorld
 
 The application should output `hello, world` and then exit.
 
+### Deploy on Heroku
 
-### Deploying on Heroku
+To deploy the application on Heroku the code and pom.xml file must be checked into a git repository.
 
-To deploy the application on Heroku we first need to check the code and pom.xml file into a local git repository.  Shortly we will use git to send the application to Heroku.
+Step 1) Create a local git repository by running the following in the main project directory:
 
-To create a local git repository run the `git init` command in the main project directory.  This should return something like the following indicating that the `.git` directory containing the git repository was successfully created:
+   git init
+
+This should return something like the following indicating that the `.git` directory containing the git repository was successfully created:
 
     Initialized empty Git repository in /home/jamesward/projects/java-workbook/01-helloheroku/.git/
 
-Lets add the pom.xml file and src directory to the local git repository:
+Step 2) Add the pom.xml file and src directory to the local git repository:
 
     git add pom.xml src
 
-Now lets commit the files with a commit message of "initial commit":
+Step 3) Commit the files with a commit message of "initial commit":
 
     git commit -m "initial commit"
 
 You should see something like the following indicating that the files were successfully committed to the local git repository:
 
     [master (root-commit) a72152c] initial commit
-     2 files changed, 22 insertions(+), 0 deletions(-)
-     create mode 100644 pom.xml
-     create mode 100644 src/main/java/helloheroku/HelloWorld.java
+    2 files changed, 22 insertions(+), 0 deletions(-)
+    create mode 100644 pom.xml
+    create mode 100644 src/main/java/helloheroku/HelloWorld.java
 
-Next thing we need to do is to create a new application provisioning stack on Heroku.  For this we will use the heroku command line client.  See Appendix A if you don't yet have it installed or you haven't logged into heroku via the command line yet.  To create the new application provisioning stack run:
+Step 4) Now create a new application provisioning stack on Heroku.  Using the heroku command line client run:
 
     heroku create --stack cedar
 
@@ -115,22 +128,24 @@ The "morning-window-956" is a randomly generated temporary name for the applicat
 
 When the application was created the heroku client outputted the web URL and git URL for this application.  Since we had already created a git repository for this application the heroku client automatically added the heroku remote repository information to the git configuration.
 
-To send the application to Heroku we can now just push it there via git:
+Step 5) Send the application to Heroku using a `git push`:
 
     git push heroku master
 
 That instructs git to push the app to the heroku remote repo and the master branch on that repo.  This will kick off a Maven build on heroku.  When it finishes you should see something like the following at the end of the output:
 
     -----> Discovering process types
-           Procfile declares types -> (none)
+          Procfile declares types -> (none)
     -----> Compiled slug size is 17.0MB
     -----> Launching... done, v6
-           http://morning-window-956.herokuapp.com deployed to Heroku
-    
+          http://morning-window-956.herokuapp.com deployed to Heroku
+   
     To git@heroku.com:morning-window-956.git
-     + 3bcf805...a72152c master -> master (forced update)
+    + 3bcf805...a72152c master -> master (forced update)
 
-This indicates that everything was built correctly and that the application is ready to run on the Cloud.  In order to run the application on Heroku we need to send a command to Heroku that will start the process.  To do that we use the `heroku run` command with an argument telling Heroku what to do:
+This indicates that everything was built correctly and that the application is ready to run on the Cloud.
+
+Step 6) In order to run the application on Heroku we need to send a command to Heroku that will start the process.  To do that use the `heroku run` command with an argument telling Heroku what to do:
 
     heroku run "java -Xmx64M -cp target/helloworld-1.0-SNAPSHOT.jar helloheroku.HelloWorld"
 
@@ -140,59 +155,59 @@ Heroku will now start-up a Dyno for you with your application on it and then run
 Tutorial 02: Starting a Worker Process
 --------------------------------------
 
-Now lets take this simple example a bit further by having it not exit and output `hello, world` once a second.  We will also tell Heroku to automatically startup one Dyno running our app.
+Many applications (like web servers) don't just run and exit like the simple example in Tutorial 01, instead they continue running until they are stopped.  In this tutorial the "hello, world" application from Tutorial 01 will be modified to continue running and output `hello, world` once a second.
 
-Using the Tutorial 01 project modify the HelloWorld.java file and change it's contents to the following:
+Step 1) Using the Tutorial 01 project modify the HelloWorld.java file and change it's contents to the following:
 
     package helloheroku;
-    
+   
     public class HelloWorld
     {
-    
-        public static void main(String[] args)
-        {
-            try
-            {
-                while(true)
-                {
-                    System.out.println("hello, world");
-                    Thread.sleep(1000);
-                }
-            }
-            catch (Exception e)
-            {
-    
-            }
-        }
+   
+       public static void main(String[] args)
+       {
+           try
+           {
+               while(true)
+               {
+                   System.out.println("hello, world");
+                   Thread.sleep(1000);
+               }
+           }
+           catch (Exception e)
+           {
+   
+           }
+       }
     }
 
-Package and run the application:
+Step 2) Package and run the application:
 
     mvn package
     java -cp target/helloworld-1.0-SNAPSHOT.jar helloheroku.HelloWorld
 
 You should see 'hello, world' outputted every second until you hit Ctrl-C.
 
-Now lets configure a Procfile that will instruct Heroku how to run that process automatically on one or more Dynos.  Simply create a file named `Procfile` in the main project directory with the following contents:
+Step 3) A `Procfile` instructs Heroku how to run a process automatically on one or more Dynos.  Simply create a file named `Procfile` in the main project directory with the following contents:
 
     helloworld: java -Xmx64M -cp target/helloworld-1.0-SNAPSHOT.jar helloheroku.HelloWorld
 
 Once deployed, this will tell Heroku that every time a new `helloworld` Dyno is started the HelloWorld Java process is run.
 
-Now tell git to add the modified `HelloWorld.java` file and the Procfile to the local git repo:
+Step 4) Tell git to add the modified `HelloWorld.java` file and the `Procfile` to the local git repo:
 
     git add src/main/java/helloheroku/HelloWorld.java Procfile
 
-Commit and push the changes the Heroku:
+Step 5) Commit and push the changes the Heroku:
 
     git commit -m "HelloWorld outputs something every second"
     git push heroku master
 
-Now we need to tell Heroku to start some Dynos running the `helloworld` process.  To start 2 Dynos run:
+Step 6) Tell Heroku to start some Dynos running the `helloworld` process.  Start two Dynos by running:
 
     heroku scale helloworld=2
 
-You can now verify that the new Dynos are up by running:
+Verify that the new Dynos are working by running:
 
     heroku ps
 
@@ -208,215 +223,227 @@ Great!  There are now two Dynos running on Heroku.  Each one has a processes tha
     2011-06-24T20:59:43+00:00 app[helloworld.1]: hello, world
     2011-06-24T20:59:43+00:00 app[helloworld.2]: hello, world
 
-Once you are done you can shut down those Dynos by scaling them to 0:
+Step 7) You can shut down those Dynos by scaling them to use zero Dynos:
 
     heroku scale helloworld=0
 
 If at any time you want to start up new ones again, just run the `heroku scale` command.
 
 
-
-
-UNDER CONSTUCTION FROM HERE ON
-==============================
-
-
-
 Tutorial 03: Starting a Web Process
 -----------------------------------
 
+Similar to the application in Tutorial 02 a web process is an application that continually runs until it is shutdown.  Additionally a web process listens for HTTP connections and returns content (HTML, JSON, images and etc.)
 
+In this tutorial you will create a simple HTTP listener process.  For the sake of simplicity we will utilize the Jetty web server and a very simple Servlet to show how basic HTTP handling works with Heroku.
 
-As we dive into Java on Heroku lets begin with the simplest thing that could possibly work.  In this example we will simply create a standard WAR-packaged web application containing a simple servlet that will handle HTTP requests.  Then we will deploy that application on Heroku.
-
-Before you get started you will need the following prerequisites:
-
-* An account on Heroku.com
-* The Heroku command line client installed (Appendix A)
-* The git tool installed (Appendix B)
-* An SSH key created and associated with your Heroku account (Appendix C)
-* Maven 3 installed (Appendix D)
+### Create the App
 
-### Building the App
+Step 1) Run the following Maven command to generate a new project directory containing the basic web application structure, Maven dependencies & build definitions, and a Java class that will start the Jetty web process:
 
-Once you have everything ready to go, create a new project directory named "helloheroku" somewhere on your system.  In that directory create a pom.xml file that will contain the Maven build information.  We need a pom.xml because Heroku will actually build the application for cloud deployment.  The pom.xml will contain the instructions for how to do the build.  We can't just send Heroku a pre-packaged application because the application needs to instrumented in such a way that Heroku can manage the environment variables and other configuration needed for managing deployment of the application.  In the pom.xml file add the following contents:
+   mvn archetype:generate -DarchetypeCatalog=http://maven.publicstaticvoidmain.net/archetype-catalog.xml
 
-    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <project xmlns="http://maven.apache.org/POM/4.0.0"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+Running this command will prompt you to answer a few questions.  First is the archetype you want to use.  Select "1" for the "embedded-jetty-archetype".  After the dependencies are downloaded you will be prompted for a groupId.  Specify "herokuweb".  Then when asked for the artifactId specify "HelloWorld".  Then accept the defaults (by just hitting Enter) for the version, package, and confirmation.
 
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>helloheroku</groupId>
-        <artifactId>helloworld</artifactId>
-        <packaging>war</packaging>
-        <version>1.0-SNAPSHOT</version>
+A new project has been created in the "HelloWorld" directory.
 
-        <dependencies>
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>servlet-api</artifactId>
-                <version>2.5</version>
-                <scope>provided</scope>
-            </dependency>
-        </dependencies>
+Step 2) In the "HelloWorld" directory tell Maven to compile and install the app into the local Maven repository by running:
 
-        <build>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <version>2.1.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.mortbay.jetty</groupId>
-                    <artifactId>jetty-maven-plugin</artifactId>
-                    <version>7.3.1.v20110307</version>
-                </plugin>
-            </plugins>
-        </build>
-    </project>
+   mvn install
 
-This Maven build file contains the minimum configuration needed to create a WAR file that depends on the Servlet API, uses the maven-war-plugin, and jetty-maven-plugin.  The jetty-maven-plugin uses the open source Jetty web server to run the application.  Jetty is the default Java web server on Heroku but you can run Tomcat or other servers with some additional configuration.
+Maven created a jar file for the app and Jetty start scripts.
 
-Now lets create a very simple Java Servlet.  In your project directory create a tree of new directories:
-src/main/java/helloheroku
+Step 3) Set the `REPO` environment variable to the location of the local Maven repository:
 
-In that directory create a new file named "HelloWorld.java" containing the following Servlet code:
+On Mac & Linux:
 
-    package helloheroku;
+   export REPO=~/.m2/repository
 
-    import java.io.*;
-    import javax.servlet.*;
-    import javax.servlet.http.*;
+On Windows (replace <USERNAME> with your Windows Username):
 
-    public class HelloWorld extends HttpServlet
-    {
-        public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-        {
-            PrintWriter out = response.getWriter();
-            out.println("hello, world");
-            out.close();
-        }
-    }
+   set REPO=C:\Documents and Settings\<USERNAME>\.m2\repository
 
-That is a very simple servlet that just handles HTTP GET requests and returns a simple string.
+Step 4) Start the Jetty process:
 
-To configure the web application to direct requests to the HelloWorld Servlet we need a web.xml file.  Create the following new directory tree in your main project directory:
+On Mac & Linux:
 
-    src/main/webapp/WEB-INF
+   sh target/bin/webapp
 
-In that directory create a the web.xml file with the following contents:
+On Windows:
 
-    <?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
-    <web-app xmlns="http://java.sun.com/xml/ns/j2ee"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
-             version="2.4">
+   target\bin\webapp.bat
 
-       <servlet>
-           <servlet-name>HelloWorld</servlet-name>
-           <servlet-class>helloheroku.HelloWorld</servlet-class>
-           <load-on-startup>1</load-on-startup>
-       </servlet>
+The Jetty process should now be running and you can open the following URL in your browser:
 
-       <servlet-mapping>
-           <servlet-name>HelloWorld</servlet-name>
-           <url-pattern>/</url-pattern>
-       </servlet-mapping>
+   http://localhost:8080/
 
-    </web-app>
+You should see the default index.html page display:
 
-This file simply instructs the web server to direct requests for "/" to the HelloWorld Servlet.
+  "hello, world"
 
-Now lets start Jetty to test the application locally.  You can do that by running the "jetty:run" Maven goal:
+Once you have verified that it works, hit "Ctrl-C" to stop the process.  You are now ready to deploy this simple Java web app on Heroku.
 
-    mvn jetty:run
+### Deploy on Heroku
 
-Maven will now download all of the required dependencies, compile the HelloWorld Java Servlet, assemble a WAR file, then start Jetty with the WAR file deployed in it.  At the end of the output from Maven you should see:  
+Step 1) In the main project directory create a new file named `Procfile` containing:
 
-    2011-06-23 17:39:57.149:INFO::started o.m.j.p.JettyWebAppContext{/,file:/home/jamesw/projects/helloheroku/src/main/webapp},file:/home/jamesw/projects/helloheroku/src/main/webapp
-    2011-06-23 17:39:57.232:INFO::Started SelectChannelConnector@0.0.0.0:8080
-    [INFO] Started Jetty Server
+   web: sh target/bin/webapp
 
-That indicates that the server was started correctly on port 8080.  Now load the following URL in your browser:
+This tells Heroku to run the webapp Jetty start script for web Dynos.
 
-    http://localhost:8080/
+Step 2) Initialize the local git repository, add the files to it, and commit them:
 
-That should display "hello, world" - the string which was returned from the HelloWorld Servlet's doGet method.  Now that you’ve verified that everything works locally you can hit "Ctrl-C" to stop Jetty.
+  git init
+  git add .
+  git commit -m "initial commit"
 
+Step 3) Create a new app on Heroku:
 
-### Deploying on Heroku
+  heroku create --stack cedar
 
-To deploy the application on Heroku we first need to check the code and configuration files into a local git repository.  The open source git tool is a commonly used distributed version control system.  Shortly we will use git to send the application to Heroku.
+Step 4) Push the application to Heroku:
 
-To create a local git repository run the "git init" command in the main project directory.  This should return something like the following indicating that the ".git" directory containing the git repository was successfully created:
+   git push heroku master
 
-    Initialized empty Git repository in /home/jamesward/projects/helloheroku/.git/
+Step 5) Tell Heroku to run the application on one Dyno:
 
-Lets add the pom.xml file and src directory to the local git repository:
+   heroku scale web=1
 
-    git add pom.xml src
+Step 6) Open the app in the browser using the generated app URL or by running:
 
-Now lets commit the files with a commit message of "initial commit":
+   heroku open
 
-    git commit -m "initial commit"
+You should now see "hello, world" in your browser, this time delivered from the Cloud!
 
-You should see something like the following indicating that the files were successfully committed to the local git repository:
+### Add an Interactive JSP
 
-    [master (root-commit) 3bcf805] initial commit
-    3 files changed, 68 insertions(+), 0 deletions(-)
-    create mode 100644 pom.xml
-    create mode 100644 src/main/java/helloheroku/HelloWorld.java
-    create mode 100644 src/main/webapp/WEB-INF/web.xml
+Now that you have a simple Java web application running on Heroku we will add an interactive JSP to the app.
 
-Next thing we need to do is to create a new application provisioning stack on Heroku.  For this we will use the heroku command line client.  See Appendix A if you don't yet have it installed or you haven't logged into heroku via the command line yet.  To create the new application provisioning stack run:
+Step 1) Create a simple JSP file in the src/main/webapp directory named "hello.jsp" containing:
 
-    heroku create -s cedar
+   <html>
+   <%
+   if (request.getParameter("name") != null) {
+   %>
+   hello, <%=request.getParameter("name")%>
+   <%
+   }
+   else {
+   %>
+   <form>
+     <input name="name">
+     <input type="submit">
+   </form>
+   <%
+   }
+   %>
+   </html>
 
-We need to specify to use the "cedar" stack when creating this new application because it supports Java.  The output from running that command should look similar to the following:
+This simple JSP will display "hello, " and if it receives a parameter `name` otherwise it will display a form where a name can be entered.
 
-    Creating morning-window-956... done, stack is cedar
-    http://morning-window-956.herokuapp.com/ | git@heroku.com:morning-window-956.git
-    Git remote heroku added
+You can test this locally by starting the local Jetty process and opening the hello.jsp in your browser.
 
-The "morning-window-956" is a randomly generated temporary name for the application.  You can rename to any unique and valid name by calling something like:
+Step 2) Add the new file to git and commit it:
 
-    heroku apps:rename newuniquename
+   git add src/main/webapp/hello.jsp
+   git commit -m "added new jsp"
 
-When the application was created the heroku client outputted the web URL and git URL for this application.  Since we had already created a git repository for this application the heroku client automatically added the heroku remote repository information to the git configuration.
+Step 3) Push the new version of the app to Heroku:
 
-To send the application to heroku we can now just push it there via git:
+   git push heroku master
 
-    git push heroku master
+Step 4) Open hello.jsp in your browser using the app's Heroku URL which will be something like:
 
-That instructs git to push the app to the heroku remote repo and the master branch on that repo.  This will kick off a Maven build on heroku.  When it finishes you should see something like the following at the end of the output:
+   http://empty-winter-343.herokuapp.com/hello.jsp
 
-    -----> Discovering process types
-          Procfile declares types -> web
-    -----> Compiled slug size is 17.0MB
-    -----> Launching... done, v5
-          http://morning-window-956.herokuapp.com deployed to Heroku
-    
-    To git@heroku.com:morning-window-956.git
-    * [new branch]      master -> master
 
-This indicates that everything was built correctly and that the application was started.  You can now connect to the application using the web URL in the output or just run "heroku open".  You should again see "hello, world" in your browser.  Your application is now up and running on the Heroku Cloud!
+Tutorial 04: Connect to a Database
+----------------------------------
 
 
+Tutorial 05: Use a Heroku Add-on
+--------------------------------
 
-Appendix A: Installing the Heroku Command Line
-----------------------------------------------
 
+??? Tutorial 06: Spring Roo on Heroku
+-------------------------------------
 
-Appendix B: Installing git
---------------------------
+??? Tutorial 07: Play Framework on Heroku
+-----------------------------------------
 
+??? Tutorial 08: Grails on Heroku
+---------------------------------
 
-Appendix C: SSH Key
--------------------
+??? Tutorial 09: Lift on Heroku
+-------------------------------
 
 
-Appendix D: Installing Maven 3
-------------------------------
 
+Appendix A: Install the Heroku Command Line
+-------------------------------------------
+
+The heroku command line client wraps the Heroku RESTful APIs and provides access to all of the Heroku management tasks.  The heroku command line itself is written in Ruby, so in order to install it you first need to install Ruby.
+
+On Mac: Mac Snow Leopard ships with Ruby.
+
+On Ubuntu Linux:
+   sudo apt-get install ruby
+
+On Windows: Use the RubyInstaller from http://rubyinstaller.org/
+
+Once Ruby is installed you will need to install gems, a Ruby package manager.
+
+Download the latest ZIP from:
+http://rubygems.org/pages/download
+
+Uncompress the downloaded file and then in the created directory run the setup.rb script with ruby (on Linux use sudo to install as root):
+
+   ruby setup.rb
+
+On Linux create a symlink for the 'gem' executable:
+
+   sudo ln -s /usr/bin/gem1.8 /usr/bin/gem
+
+Install the heroku gem (on Linux use sudo to install as root):
+
+   gem install heroku
+
+
+
+Now you can run the heroku command line in the Terminal:
+
+   heroku version
+
+You should be the following output:
+
+   heroku-gem/2.3.6
+
+
+After creating an account at Heroku.com you can use the heroku command line to login:
+
+   heroku auth:login
+
+Appendix B: Install git & Setup a SSH Key
+-----------------------------------------
+
+The `git` tool is used to upload your application to Heroku.  It is a native application and installation varies depending on the platform.  In order to upload your application to Heroku using git you will need to create a SSH key (if you don't already have one) and associate it with your Heroku account.
+
+Here are links to various git installation and SSH Key creation guides for each platform:
+
+On Mac: http://help.github.com/mac-set-up-git/
+On Windows: http://help.github.com/win-set-up-git/
+On Linux: http://help.github.com/linux-set-up-git/
+
+Once you have your ssh key setup you can associate it with your Heroku account by running:
+
+   heroku keys:add
+
+
+Appendix C: Install Maven 3
+---------------------------
+
+Download the latest Maven binary release:
+http://maven.apache.org/download.html
+
+Extract the archive and following the installation instructions:
+http://maven.apache.org/download.html#Installation
