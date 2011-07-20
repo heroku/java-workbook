@@ -1,1 +1,0 @@
-helloworld: java -Xmx64M -cp target/helloworld-1.0-SNAPSHOT.jar helloheroku.HelloWorld
