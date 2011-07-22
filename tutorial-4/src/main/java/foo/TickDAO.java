@@ -15,64 +15,86 @@ public class TickDAO {
 
     static JedisPool jedisPool;
     private static final String TICKCOUNT_KEY = "tickcount";
-    private static final Pattern REDIS_URL_PATTERN = Pattern.compile("^redis://([^:]*):([^@]*)@([^:]*):([^/]*)(/)?");
 
-    private Connection getConn() throws SQLException {
-        String dbUrl = System.getenv("DATABASE_URL");
-        dbUrl = dbUrl.replaceAll("postgres://(.*):(.*)@(.*)", "jdbc:postgresql://$3?user=$1&password=$2");
-        return DriverManager.getConnection(dbUrl);
-    }
+    static String dbUrl;
 
-    private void createTable() {
-        try {
-            Statement stmt = getConn().createStatement();
-            stmt.executeUpdate("CREATE TABLE ticks (tick timestamp)");
-        }
-        catch (SQLException e) {
-        }
-    }
-
-    private Jedis getJedis() {
+    public TickDAO() {
         if (jedisPool == null) {
+            Pattern REDIS_URL_PATTERN = Pattern.compile("^redis://([^:]*):([^@]*)@([^:]*):([^/]*)(/)?");
             Matcher matcher = REDIS_URL_PATTERN.matcher(System.getenv("REDISTOGO_URL"));
             matcher.matches();
             Config config = new Config();
             config.testOnBorrow = true;
             jedisPool = new JedisPool(config, matcher.group(3), Integer.parseInt(matcher.group(4)), Protocol.DEFAULT_TIMEOUT, matcher.group(2));
         }
-        return jedisPool.getResource();
-    }
 
-    public int getTickCount() {
-        Jedis jedis = getJedis();
-        int tickcount = -1;
-        String tickcountValue = jedis.get(TICKCOUNT_KEY);
-        if (tickcountValue != null) {
-            tickcount = Integer.parseInt(tickcountValue);
+        if (dbUrl == null) {
+            dbUrl = System.getenv("DATABASE_URL").replaceAll("postgres://(.*):(.*)@(.*)", "jdbc:postgresql://$3?user=$1&password=$2");
+            dbUpdate("CREATE TABLE ticks (tick timestamp)");
         }
-        else {
-            try {
-                Statement stmt = getConn().createStatement();
-                ResultSet rs = stmt.executeQuery("SELECT count(*) FROM ticks");
-                rs.next();
-                jedis.setex(TICKCOUNT_KEY, 60, rs.getString(1));
-                tickcount = rs.getInt(1);
-            }
-            catch (SQLException e) {
-            }
-        }
-        jedisPool.returnResource(jedis);
-        
-        return tickcount;
     }
 
     public void insertTick() {
+        dbUpdate("INSERT INTO ticks VALUES (now())");
+    }
+
+    private void dbUpdate(String sql) {
+        Connection dbConn = null;
         try {
-            createTable();
-            Statement stmt = getConn().createStatement();
-            stmt.executeUpdate("INSERT INTO ticks VALUES (now())");
+            dbConn = DriverManager.getConnection(dbUrl);
+            Statement stmt = dbConn.createStatement();
+            stmt.executeUpdate(sql);
         }
         catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                dbConn.close();
+            }
+            catch (SQLException ignore) {
+            }
         }
     }
+
+    private int getTickcountFromDb() {
+        Connection dbConn = null;
+        try {
+            dbConn = DriverManager.getConnection(dbUrl);
+            Statement stmt = dbConn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT count(*) FROM ticks");
+            rs.next();
+            System.out.println("read from database");
+            return rs.getInt(1);
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                dbConn.close();
+            }
+            catch (SQLException ignore) {
+            }
+        }
+        return -1;
+    }
+
+    public int getTickCount() {
+        Jedis jedis = jedisPool.getResource();
+        int tickcount = 0;
+        String tickcountValue = jedis.get(TICKCOUNT_KEY);
+        if (tickcountValue != null) {
+            System.out.println("read from redis cache");
+            tickcount = Integer.parseInt(tickcountValue);
+        }
+        else {
+            tickcount = getTickcountFromDb();
+            jedis.setex(TICKCOUNT_KEY, 30, String.valueOf(tickcount));
+        }
+        jedisPool.returnResource(jedis);
+
+        return tickcount;
+    }
+
 }

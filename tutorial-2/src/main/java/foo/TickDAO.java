@@ -1,7 +1,7 @@
 package foo;
-   
+
 import java.sql.*;
-      
+
 public class TickDAO {
 
     static String dbUrl;
@@ -36,23 +36,31 @@ public class TickDAO {
         }
     }
 
-    public int getTickCount() throws SQLException {
+    private int getTickcountFromDb() {
         Connection dbConn = null;
         try {
             dbConn = DriverManager.getConnection(dbUrl);
             Statement stmt = dbConn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT count(*) FROM ticks");
             rs.next();
+            System.out.println("read from database");
             return rs.getInt(1);
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
         finally {
-            dbConn.close();
+            try {
+                dbConn.close();
+            }
+            catch (SQLException ignore) {
+            }
         }
-
         return -1;
     }
- 
+
+    public int getTickCount() {
+       return getTickcountFromDb();
+    }
+
 }

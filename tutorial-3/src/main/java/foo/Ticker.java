@@ -7,6 +7,7 @@ public class Ticker {
         try {
             while (true) {
                 tickDAO.insertTick();
+                System.out.println("tick");
                 Thread.sleep(1000);
             }
         }

@@ -4,40 +4,63 @@ import java.sql.*;
 
 public class TickDAO {
 
-    private Connection getConn() throws SQLException {
-        String dbUrl = System.getenv("DATABASE_URL");
-        dbUrl = dbUrl.replaceAll("postgres://(.*):(.*)@(.*)", "jdbc:postgresql://$3?user=$1&password=$2");
-        return DriverManager.getConnection(dbUrl);
+    static String dbUrl;
+
+    public TickDAO() {
+        if (dbUrl == null) {
+            dbUrl = System.getenv("DATABASE_URL").replaceAll("postgres://(.*):(.*)@(.*)", "jdbc:postgresql://$3?user=$1&password=$2");
+            dbUpdate("CREATE TABLE ticks (tick timestamp)");
+        }
     }
 
-    private void createTable() {
+    public void insertTick() {
+        dbUpdate("INSERT INTO ticks VALUES (now())");
+    }
+
+    private void dbUpdate(String sql) {
+        Connection dbConn = null;
         try {
-            Statement stmt = getConn().createStatement();
-            stmt.executeUpdate("CREATE TABLE ticks (tick timestamp)");
+            dbConn = DriverManager.getConnection(dbUrl);
+            Statement stmt = dbConn.createStatement();
+            stmt.executeUpdate(sql);
         }
         catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                dbConn.close();
+            }
+            catch (SQLException ignore) {
+            }
         }
     }
 
-    public int getTickCount() {
+    private int getTickcountFromDb() {
+        Connection dbConn = null;
         try {
-            Statement stmt = getConn().createStatement();
+            dbConn = DriverManager.getConnection(dbUrl);
+            Statement stmt = dbConn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT count(*) FROM ticks");
             rs.next();
+            System.out.println("read from database");
             return rs.getInt(1);
-           }
+        }
         catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                dbConn.close();
+            }
+            catch (SQLException ignore) {
+            }
         }
         return -1;
     }
 
-    public void insertTick() {
-        try {
-            createTable();
-            Statement stmt = getConn().createStatement();
-            stmt.executeUpdate("INSERT INTO ticks VALUES (now())");
-        }
-        catch (SQLException e) {
-        }
+    public int getTickCount() {
+       return getTickcountFromDb();
     }
+
 }
