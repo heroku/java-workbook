@@ -3,64 +3,52 @@ package foo;
 import java.sql.*;
 
 public class TickDAO {
+    private static String dbUrl;
 
-    static String dbUrl;
+    static {
+        dbUrl = System.getenv("DATABASE_URL");
+        dbUrl = dbUrl.replaceAll("postgres://(.*):(.*)@(.*)", "jdbc:postgresql://$3?user=$1&password=$2");
+    }
 
-    public TickDAO() {
-        if (dbUrl == null) {
-            dbUrl = System.getenv("DATABASE_URL").replaceAll("postgres://(.*):(.*)@(.*)", "jdbc:postgresql://$3?user=$1&password=$2");
-            dbUpdate("CREATE TABLE ticks (tick timestamp)");
+    public int getTickCount() throws SQLException {
+        return getTickcountFromDb();
+    }
+
+    public static int getScalarValue(String sql) throws SQLException {
+        Connection dbConn = null;
+        try {
+            dbConn = DriverManager.getConnection(dbUrl);
+            Statement stmt = dbConn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            System.out.println("read from database");
+            return rs.getInt(1);
+        } finally {
+           if (dbConn!= null) dbConn.close(); 
         }
     }
 
-    public void insertTick() {
-        dbUpdate("INSERT INTO ticks VALUES (now())");
-    }
-
-    private void dbUpdate(String sql) {
+    private static void dbUpdate(String sql) throws SQLException {
         Connection dbConn = null;
         try {
             dbConn = DriverManager.getConnection(dbUrl);
             Statement stmt = dbConn.createStatement();
             stmt.executeUpdate(sql);
-        }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
-        finally {
-            try {
-                dbConn.close();
-            }
-            catch (SQLException ignore) {
-            }
+        } finally {
+            if (dbConn!= null) dbConn.close();
         }
     }
 
-    private int getTickcountFromDb() {
-        Connection dbConn = null;
-        try {
-            dbConn = DriverManager.getConnection(dbUrl);
-            Statement stmt = dbConn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT count(*) FROM ticks");
-            rs.next();
-            System.out.println("read from database");
-            return rs.getInt(1);
-        }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
-        finally {
-            try {
-                dbConn.close();
-            }
-            catch (SQLException ignore) {
-            }
-        }
-        return -1;
+    private int getTickcountFromDb() throws SQLException {
+        return getScalarValue("SELECT count(*) FROM ticks");
     }
 
-    public int getTickCount() {
-       return getTickcountFromDb();
+    public static void createTable() throws SQLException {
+        System.out.println("Creating ticks table.");
+        dbUpdate("CREATE TABLE ticks (tick timestamp)");
     }
 
+    public void insertTick() throws SQLException {
+        dbUpdate("INSERT INTO ticks VALUES (now())");
+    }
 }
