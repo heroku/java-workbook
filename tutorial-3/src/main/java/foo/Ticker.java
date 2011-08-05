@@ -12,6 +12,7 @@ public class Ticker {
             }
         }
         catch (Exception e) {
+            // exception handling omitted for brevity
         }
     }
 }
