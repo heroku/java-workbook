@@ -7,10 +7,12 @@ public class Ticker {
         try {
             while (true) {
                 tickDAO.insertTick();
+                System.out.println("tick");
                 Thread.sleep(1000);
             }
         }
         catch (Exception e) {
+            // exception handling omitted for brevity
         }
     }
 }
