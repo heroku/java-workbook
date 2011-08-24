@@ -36,10 +36,10 @@ In this tutorial, you will create a web app and deploy it to Heroku. You will us
 
 #### Prerequisites
 
- * Create an account on [heroku.com](https://api.heroku.com/signup)
- * Install the `heroku` command-line client (Appendix A)
- * Installing git and Setting up an SSH Key (Appendix B)
- * Install Maven (Appendix C)
+* Create an account on [heroku.com](https://api.heroku.com/signup)
+* Install the `heroku` command-line client (Appendix A)
+* Installing git and Setting up an SSH Key (Appendix B)
+* Install Maven (Appendix C)
 
 ### Step 1: Create a Web App
 
@@ -540,11 +540,11 @@ In this tutorial, you will create a worker process, register it in your `Procfil
 
 2. Run the Ticker:
 
-    On Mac or Linux:
+    * On Mac or Linux:
 
         sh target/bin/ticker
 
-    On Windows:
+    * On Windows:
 
         target\bin\ticker.bat
 
@@ -680,21 +680,21 @@ You will use Redis to cache the number of ticks to reduce the number of database
 
 3. Set the `REDISTOGO_URL` environment variable:
 
-    On Mac or Linux:
+    * On Mac or Linux:
 
         export REDISTOGO_URL=redis://:@localhost:6379/
 
-    On Windows:
+    * On Windows:
 
         set REDISTOGO_URL=redis://:@localhost:6379/
 
 4. Run the webapp script to start the app locally:
 
-    On Mac or Linux:
+    * On Mac or Linux:
 
         sh target/bin/webapp
 
-    On Windows:
+    * On Windows:
 
         target\bin\webapp.bat
 
@@ -734,187 +734,231 @@ In this tutorial, you learned how to take advantage of Heroku add-ons. In partic
 
 
 Tutorial #5: Using Spring Roo
-Spring Roo is a tool that makes building Java web apps very easy. For example, it can create CRUD objects, UI objects, and
-support general app development.
-In this tutorial, you will create a simple Spring Roo web app, configure it, and then deploy it on Heroku. Instead of starting
-from scratch, this tutorial uses the Pet Clinic sample that comes with Spring Roo.
-Prerequisites
-Working on your own computer:
-You must install Spring Roo.
-Working on your own computer or on a lab computer:
-You must complete Tutorial #2: Connecting to a Database on page 10.
-Step 1: Create the Spring Roo Sample App
-1. Using the terminal or command line, navigate to the sub-directory you created in Tutorial #1: Building a Web App for
-your code. This directory contains the helloheroku directory.
-2. Create a new directory for the Spring Roo project and navigate to the directory:
-mkdir petclinic
-cd petclinic
+-----------------------------
+
+Spring Roo is a tool that makes building Java web apps very easy. For example, it can create CRUD objects, UI objects, and support general app development.
+
+In this tutorial, you will create a simple Spring Roo web app, configure it, and then deploy it on Heroku. Instead of starting from scratch, this tutorial uses the Pet Clinic sample that comes with Spring Roo.
+
+#### Prerequisites
+
+* Create an account on [heroku.com](https://api.heroku.com/signup)
+* Install the `heroku` command-line client (Appendix A)
+* Installing git and Setting up an SSH Key (Appendix B)
+* Install Maven (Appendix C)
+* Install Spring Roo (Appendix F)
+
+### Step 1: Create the Spring Roo Sample App
+
+1. Create a new project directory for the Spring Roo project and navigate to the directory:
+
+        mkdir petclinic
+        cd petclinic
+
 3. Run the sample petclinic startup script.
-roo script --file clinic.roo
-Note: The path to roo was added to your PATH environment variable as part of the Spring Roo installation.
-You now have a fully functional CRUD app!
-Step 2: Configure the App's Runtime Environment
-An app is "erosion resistant" if it continues to run without any maintenance from the developer. If you are running your own
-server, you typically need to manage operating system and security patches and many other system administration tasks.
-Apps on Heroku are more erosion resistant if they explicitly state all their dependencies (including the app server) and can be
-quickly restarted. To do this, we will add the app server dependencies, the app dependencies, the app packaging, and the app
-startup process to your app’s configuration.
-We will also switch the app from using an in-memory database to a PostgreSQL database, and from using Tomcat to using
-an embedded Jetty server.
-To migrate from an external Tomcat to an embedded Jetty, we need to make a few changes to the Maven configuration and
-add a class that allows us to start up Jetty.
-21
-Tutorial #5: Using Spring Roo
+
+        roo script --file clinic.roo
+
+    Note: Part of the Spring Roo installation puts the `roo` command in your `PATH`.
+
+    You now have a fully functional CRUD app!
+
+### Step 2: Configure the App's Runtime Environment
+
+An app is "erosion resistant" if it continues to run without any maintenance from the developer. If you are running your own server, you typically need to manage operating system and security patches and many other system administration tasks.
+
+Apps on Heroku are more erosion resistant if they explicitly state all their dependencies (including the app server) and can be quickly restarted. To do this, we will add the app server dependencies, the app dependencies, the app packaging, and the app startup process to your app’s configuration.
+
+We will also switch the app from using an in-memory database to a PostgreSQL database, and from using Tomcat to using an embedded Jetty server.
+
+To migrate from an external Tomcat to an embedded Jetty, we need to make a few changes to the Maven configuration and add a class that allows us to start up Jetty.
+
 Finally, we will change the app packaging from a WAR file to a JAR file so that it can be easily executed in a standalone mode.
+
 1. Navigate to the petclinic directory.
-2. Open the pom.xml file for editing.
-3. Add the Jetty server dependencies and PostgreSQL JDBC Driver to the <dependencies> section:
-<dependency>
-<groupId>org.eclipse.jetty</groupId>
-<artifactId>jetty-webapp</artifactId>
-<version>7.4.4.v20110707</version>
-</dependency>
-<dependency>
-<groupId>org.mortbay.jetty</groupId>
-<artifactId>jsp-2.1-glassfish</artifactId>
-<version>2.1.v20100127</version>
-</dependency>
-<dependency>
-<groupId>postgresql</groupId>
-<artifactId>postgresql</artifactId>
-<version>9.0-801.jdbc4</version>
-</dependency>
-4. Update the <dependency> sections for the following artifactId elements to change the scope value from provided
-to compile since Jetty doesn't include these components:
-•
-•
-servlet-api
-org.springframework.roo.annotations
-For example, change:
-<dependency>
-<groupId>javax.servlet</groupId>
-<artifactId>servlet-api</artifactId>
-<version>2.5</version>
-<scope>provided</scope>
-</dependency>
-to:
-<dependency>
-<groupId>javax.servlet</groupId>
-<artifactId>servlet-api</artifactId>
-<version>2.5</version>
-<scope>compile</scope>
-</dependency>
-5. Add the appassembler-maven-plugin to the plugins section in the build tag. This enables the embedded Jetty
-process to be started from the command line.
-<plugin>
-<groupId>org.codehaus.mojo</groupId>
-<artifactId>appassembler-maven-plugin</artifactId>
-<version>1.1.1</version>
-<executions>
-<execution>
-<phase>package</phase>
-<goals><goal>assemble</goal></goals>
-<configuration>
-<assembleDirectory>target</assembleDirectory>
-22
-Tutorial #5: Using Spring Roo
-<generateRepository>false</generateRepository>
-<extraJvmArguments>-Xmx512m</extraJvmArguments>
-<programs>
-<program>
-<mainClass>Main</mainClass>
-<name>webapp</name>
-</program>
-</programs>
-</configuration>
-</execution>
-</executions>
-</plugin>
+
+2. Open the `pom.xml` file for editing.
+
+3. Add the Jetty server dependencies and PostgreSQL JDBC Driver to the `<dependencies>` section:
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-webapp</artifactId>
+            <version>7.4.4.v20110707</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jsp-2.1-glassfish</artifactId>
+            <version>2.1.v20100127</version>
+        </dependency>
+        <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.0-801.jdbc4</version>
+        </dependency>
+
+4. Update the `<dependency>` sections for the following artifactId elements to change the scope value from provided to compile since Jetty doesn't include these components:
+
+    * servlet-api
+    * org.springframework.roo.annotations
+
+    For example, change:
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+
+    To:
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>compile</scope>
+        </dependency>
+
+5. Add the appassembler-maven-plugin to the plugins section in the build tag. This enables the embedded Jetty process to be started from the command line.
+
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>appassembler-maven-plugin</artifactId>
+            <version>1.1.1</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals><goal>assemble</goal></goals>
+                    <configuration>
+                        <assembleDirectory>target</assembleDirectory>
+                        <generateRepository>false</generateRepository>
+                        <extraJvmArguments>-Xmx512m</extraJvmArguments>
+                        <programs>
+                            <program>
+                                <mainClass>Main</mainClass>
+                                <name>webapp</name>
+                            </program>
+                        </programs>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+
 6. Change the app packaging from war to jar by removing the following line:
-<packaging>war</packaging>
-7. Save and close the pom.xml file.
-Step 3: Create a Java Class for Starting Jetty
+
+        <packaging>war</packaging>
+
+7. Save and close the `pom.xml` file.
+
+### Step 3: Create a Java Class for Starting Jetty
+
 Next, you will create a Java class to start an embedded Jetty instance.
-In the src/main/java directory, create a new file named Main.java containing the following code:
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.webapp.WebAppContext;
-public class Main
-{
-public static void main(String[] args) throws Exception
-{
-String webappDirLocation = "src/main/webapp/";
-String webPort = System.getenv("PORT");
-if(webPort == null || webPort.isEmpty()) {
-webPort = "8080";
-}
-Server server = new Server(Integer.valueOf(webPort));
-WebAppContext root = new WebAppContext();
-root.setContextPath("/");
-root.setDescriptor(webappDirLocation+"/WEB-INF/web.xml");
-root.setResourceBase(webappDirLocation);
-root.setParentLoaderPriority(true);
-server.setHandler(root);
-server.start();
-server.join();
-}
-}
-23
-Tutorial #5: Using Spring Roo
-Step 4: Configure the App to Use PostgreSQL
-1. Modify the src/main/resources/META-INF/spring/applicationContext.xml file to use PostgreSQL by
-changing the following:
-<property name="url" value="${database.url}"/>
-<property name="username" value="${database.username}"/>
-<property name="password" value="${database.password}"/>
-to:
-<property name="url" value="#{systemEnvironment['DATABASE_URL'].replaceAll(
-'postgres://(.*):(.*)@(.*)',
-'jdbc:postgresql://$3?user=$1&amp;password=$2') }"/>
-The app will now look for database configuration information in the DATABASE_URL environment variable.
-2. In the src/main/resources/META-INF/spring/database.properties file, change the
-org.hsqldb.jdbcDriver value to org.postgresql.Driver instead.
-3. In the src/main/resources/META-INF/persistence.xml file, change the value of the hibernate.dialect to
-org.hibernate.dialect.PostgreSQLDialect instead.
-Step 5: Test the App Locally
-1. Set the DATABASE_URL environment variable to point to the local PostgreSQL database URL, and set the REPO environment
-variable:
-On Mac or Linux:
-export DATABASE_URL=postgres://foo:foo@localhost/helloheroku
-export REPO=~/.m2/repository
-On Windows:
-set DATABASE_URL=postgres://foo:foo@localhost/helloheroku
-set REPO=%UserProfile%\.m2\repository
+
+In the `src/main/java` directory, create a new file named `Main.java` containing the following code:
+
+    import org.eclipse.jetty.server.Server;
+    import org.eclipse.jetty.webapp.WebAppContext;
+    public class Main
+    {
+        public static void main(String[] args) throws Exception
+        {
+            String webappDirLocation = "src/main/webapp/";
+            String webPort = System.getenv("PORT");
+            if(webPort == null || webPort.isEmpty()) {
+                webPort = "8080";
+            }
+            Server server = new Server(Integer.valueOf(webPort));
+            WebAppContext root = new WebAppContext();
+            root.setContextPath("/");
+            root.setDescriptor(webappDirLocation+"/WEB-INF/web.xml");
+            root.setResourceBase(webappDirLocation);
+            root.setParentLoaderPriority(true);
+            server.setHandler(root);
+            server.start();
+            server.join();
+        }
+    }
+
+### Step 4: Configure the App to Use PostgreSQL
+
+1. Modify the `src/main/resources/META-INF/spring/applicationContext.xml` file to use PostgreSQL by changing the following:
+
+        <property name="url" value="${database.url}"/>
+        <property name="username" value="${database.username}"/>
+        <property name="password" value="${database.password}"/>
+
+    To:
+
+        <property name="url" value="#{systemEnvironment['DATABASE_URL'].replaceAll('postgres://(.*):(.*)@(.*)', 'jdbc:postgresql://$3?user=$1&amp;password=$2') }"/>
+
+    The app will now look for database configuration information in the `DATABASE_URL` environment variable.
+
+2. In the `src/main/resources/META-INF/spring/database.properties` file, change the `org.hsqldb.jdbcDriver` value to `org.postgresql.Driver` instead.
+
+3. In the `src/main/resources/META-INF/persistence.xml` file, change the value of the `hibernate.dialect` to `org.hibernate.dialect.PostgreSQLDialect` instead.
+
+### Step 5: Test the App Locally
+
+1. Set the `DATABASE_URL` environment variable to point to the local PostgreSQL database URL, and set the `REPO` environment variable:
+
+    * On Mac or Linux:
+
+        export DATABASE_URL=postgres://foo:foo@localhost/helloheroku
+        export REPO=~/.m2/repository
+
+    * On Windows:
+
+        set DATABASE_URL=postgres://foo:foo@localhost/helloheroku
+        set REPO=%UserProfile%\.m2\repository
+
 2. Compile and install the app into the local Maven repository:
-mvn install
+
+        mvn install
+
 3. Start the app locally:
-On Mac or Linux:
-sh target/bin/webapp
-On Windows:
-target\bin\webapp.bat
-24
-Tutorial #5: Using Spring Roo
-4. Navigate to http://localhost:8080/ in your browser to try the app.
-5. Press CTRL-C to stop the web app.
-Step 6: Deploy the App to Heroku
-1. Navigate to the petclinic directory.
+
+    * On Mac or Linux:
+
+        sh target/bin/webapp
+
+    * On Windows:
+
+        target\bin\webapp.bat
+
+4. Navigate to [http://localhost:8080/](http://localhost:8080/) in your browser to try the app.
+
+5. Press `CTRL-C` to stop the web app.
+
+### Step 6: Deploy the App to Heroku
+
+1. Navigate to the `petclinic` directory.
+
 2. Create a Procfile in this directory containing:
-web:
-sh target/bin/webapp
-3. Create a git repository for this project, add the files to git, and commit them:
-git init
-git add pom.xml src Procfile
-git commit -m "initial commit"
+
+        web: sh target/bin/webapp
+
+3. Create a `git` repository for this project, add the files to `git`, and commit them:
+
+        git init
+        git add pom.xml src Procfile
+        git commit -m "initial commit"
+
 4. Create a new app on Heroku:
-heroku create --stack cedar
+
+        heroku create --stack cedar
+
 5. Deploy the app to Heroku:
-git push heroku master
+
+        git push heroku master
+
 6. Open the app on Heroku:
-heroku open
-25
-Tutorial #5: Using Spring Roo
-Summary
-In this tutorial, you learned how to deploy a Spring Roo app to Heroku. You reconfigured the app to use an explicit process
-model by making it an executable JAR with an embedded Jetty server. This enables easy scaling on Heroku using the Procfile.
+
+        heroku open
+
+#### Summary
+
+In this tutorial, you learned how to deploy a Spring Roo app to Heroku. You reconfigured the app to use an explicit process model by making it an executable JAR with an embedded Jetty server. This enables easy scaling on Heroku using the Procfile.
 
 
 
@@ -925,139 +969,195 @@ If you've completed this workbook, you now have a few Java apps deployed and run
 
 To continue exploring:
 
- * Visit http://devcenter.heroku.com/ to learn more about what you can do on the Heroku platform.
- * Visit http://addons.heroku.com/ to learn about the add-ons that enable you to easily extend your app by using other cloud services.
+* Visit [http://devcenter.heroku.com/](http://devcenter.heroku.com/) to learn more about what you can do on the Heroku platform.
+* Visit [http://addons.heroku.com/](http://addons.heroku.com/) to learn about the add-ons that enable you to easily extend your app by using other cloud services.
 
 
-Installing the heroku Command-Line Client
+Appendix A: Installing the heroku Command-Line Client
+-----------------------------------------------------
+
 The heroku command-line client wraps the Heroku RESTful APIs and enables you to manage your apps on Heroku.
-The client is written in Ruby. To install it, you first need to install Ruby, the Ruby package manager (RubyGems), and finally
-the client itself.
+
+The client is written in Ruby. To install it, you first need to install Ruby, the Ruby package manager (RubyGems), and finally the client itself.
+
 1. To install Ruby:
-•
-•
-On Mac—Mac Snow Leopard and Lion ship with Ruby.
-On Ubuntu Linux:
-sudo apt-get install ruby
-•
-On Windows—Use the RubyInstaller from:
-http://rubyinstaller.org/
+
+    * On Mac—Mac Snow Leopard and Lion ship with Ruby.
+
+    * On Ubuntu Linux, run:
+
+        sudo apt-get install ruby
+
+    * On Windows—Use the RubyInstaller from:  
+    [http://rubyinstaller.org/](http://rubyinstaller.org/)
+
 2. To install RubyGems:
-a. Download the latest zip file from:
-http://rubygems.org/
-b. Uncompress the downloaded file and change directory to the expanded folder.
-c. Run the setup script in a terminal or command prompt:
-•
-On Mac or Windows:
-ruby setup.rb
-•
-On Linux:
-sudo ruby setup.rb
-sudo ln -s /usr/bin/gem1.8 /usr/bin/gem
-3. To install the heroku client, run the following in a terminal or command prompt:
-•
-On Mac or Windows:
-gem install heroku
-•
-On Linux:
-sudo gem install heroku
-28
-Appendixes
-Installing git and Setting up an SSH Key
+
+    a. Download the latest zip file from:  
+    [http://rubygems.org/](http://rubygems.org/)
+
+    b. Uncompress the downloaded file and change directory to the expanded folder.
+
+    c. Run the setup script in a terminal or command prompt:
+
+    * On Mac or Windows:
+
+        ruby setup.rb
+
+    * On Linux:
+
+        sudo ruby setup.rb
+        sudo ln -s /usr/bin/gem1.8 /usr/bin/gem
+
+3. To install the `heroku` client, run the following in a terminal or command prompt:
+
+    * On Mac or Windows:
+
+        gem install heroku
+
+    * On Linux:
+
+        sudo gem install heroku
+
 4. Verify your installation by running the following command:
-heroku version
+
+        heroku version
+
 5. Confirm that you see output similar to the following:
-heroku-gem/2.3.6
-Installing git and Setting up an SSH Key
-Use git to upload your app to Heroku. It is a native app so follow the installation instructions for your operating system.
-To upload your app to Heroku, you will need to create an SSH key (if you don't already have one) and associate it with your
-Heroku account.
-1. Download the distribution of git for your operating system at:
-http://git-scm.com/download
-2. Install git and create an SSH key by following the instructions in the link for your operating system. You only have to
-install git and create an SSH key. You don’t need a GitHub account to complete this workbook.
-•
-•
-On Mac: http://help.github.com/mac-set-up-git/
-On Windows: http://help.github.com/win-set-up-git/
-Note: The instructions in this workbook assume that the directory containing git.cmd or git.exe is included
-in your PATH environment variable.
-•
-On Linux: http://help.github.com/linux-set-up-git/
-3. If you haven't already created an account on http://heroku.com, create one now.
+
+        heroku-gem/2.3.6
+
+
+Appendix B: Installing git and Setting up an SSH Key
+----------------------------------------------------
+
+The `git` tool is used to upload your app to Heroku.  It is a native app so follow the installation instructions for your operating system.
+
+To upload your app to Heroku, you will need to create an SSH key (if you don't already have one) and associate it with your Heroku account.
+
+1. Download the distribution of git for your operating system at:  
+    [http://git-scm.com/download](http://git-scm.com/download)
+
+2. Install `git` and create an SSH key by following the instructions in the link for your operating system. You only have to install `git` and create an SSH key. You don’t need a GitHub account to complete this workbook.
+
+    * On Mac: [http://help.github.com/mac-set-up-git/](http://help.github.com/mac-set-up-git/)
+    * On Windows: [http://help.github.com/win-set-up-git/](http://help.github.com/win-set-up-git/)  
+    Note: The instructions in this workbook assume that the directory containing git.cmd or git.exe is included in your PATH environment variable.
+    * On Linux: [http://help.github.com/linux-set-up-git/](http://help.github.com/linux-set-up-git/)
+
+3. If you haven't already created an account on [http://heroku.com](http://heroku.com), create one now.
 4. Log in to Heroku using a terminal or command line:
-heroku auth:login
+
+    heroku auth:login
+
 5. Associate your SSH key with your Heroku account:
-heroku keys:add
-Installing Maven
-Apache Maven is a project management and build tool. A Maven project includes a project object model (POM) file that
-describes its dependencies. Maven can then manage these project dependencies when you are building and deploying your
-code.
-1. Download the latest Maven 3 binary release at:
-http://maven.apache.org/download.html
-29
-Appendixes
-Installing PostgreSQL
-2. Extract the archive and follow the installation instructions at:
-http://maven.apache.org/download.html#Installation
-Installing PostgreSQL
+
+    heroku keys:add
+
+
+Appendix C: Installing Maven
+----------------------------
+
+Apache Maven is a project management and build tool. A Maven project includes a project object model (POM) file that describes its dependencies. Maven can then manage these project dependencies when you are building and deploying your code.
+
+1. Download the latest Maven 3 binary release at:  
+    [http://maven.apache.org/download.html](http://maven.apache.org/download.html)
+
+2. Extract the archive and follow the installation instructions at:  
+    [http://maven.apache.org/download.html#Installation](http://maven.apache.org/download.html#Installation)
+
+
+Appendix D: Installing PostgreSQL
+---------------------------------
+
 PostgreSQL is an open source object-relational database system.
-1. Download and install the PostgreSQL database by following instructions for your operating system:
-http://www.postgresql.org/download/
-Note: During installation, write down the installation directory that you choose as you’ll have to navigate to the
-bin sub-directory later to create a database user.
+
+1. Download and install the PostgreSQL database by following instructions for your operating system:  
+    [http://www.postgresql.org/download/](http://www.postgresql.org/download/)
+
+    Note: During installation, write down the installation directory that you choose as you’ll have to navigate to the bin sub-directory later to create a database user.
+
 2. Start the PostgreSQL server (if the installer didn't do so already).
-3. Create a new user with superuser privileges, user name foo, and password foo:
-•
-On Linux:
-sudo -u postgres createuser -P foo
-•
-On Mac:
-createuser -P foo
-•
-On Windows:
-a. Using the terminal or command line, navigate to the bin sub-directory of your installation directory.
-b. Run the following command:
-createuser -U postgres -P foo
-c. Enter foo when you are prompted to Enter password for new role and to confirm the password.
-d. Enter y to make the new role a superuser.
-e. At the final Password prompt, enter the password for the postgres user.
+
+3. Create a new user with superuser privileges, username `foo`, and password `foo`:
+
+    * On Linux:
+
+        sudo -u postgres createuser -P foo
+
+    * On Mac:
+
+        createuser -P foo
+
+    * On Windows:
+
+        a. Using the terminal or command line, navigate to the bin sub-directory of your installation directory.
+
+        b. Run the following command:
+
+            createuser -U postgres -P foo
+
+        c. Enter `foo` when you are prompted to enter the password for the new role and to confirm the password.
+
+        d. Enter `y` to make the new role a superuser.
+
+        e. At the final password prompt, enter the password for the postgres user.
+
 4. Create a new database named helloheroku:
-a. Run the following command:
-createdb -U foo -W -h localhost helloheroku
-b. Enter foo when prompted for a password.
+
+    a. Run the following command:
+
+        createdb -U foo -W -h localhost helloheroku
+
+    b. Enter `foo` when prompted for a password.
+
 5. Test the connection to the database:
-psql -U foo -W -h localhost helloheroku
-30
-Appendixes
-Installing Redis
+
+        psql -U foo -W -h localhost helloheroku
+
 6. Verify that you see output similar to the following:
-Password for user foo:
-psql (9.0.4)
-helloheroku=#
+
+        Password for user foo:
+        psql (9.0.4)
+        helloheroku=#
+
 7. Type \q to exit the psql command line.
-Installing Redis
+
+
+Appendix E: Installing Redis
+----------------------------
+
 Redis is an open source, advanced key-value store.
+
 1. Install the Redis Server.
-•
-On Ubuntu Linux:
-sudo apt-get install redis-server
-The server starts by default.
-•
-On Mac: Follow the Redis installation instructions at:
-http://redis.io/download
-•
-On Windows: Download and install the Redis Server for Windows from:
-https://github.com/dmajkic/redis/downloads
-After uncompressing the files, start the server by executing:
-redis-server.exe
-2. Verify it works by running redis-cli. You should see a command line but the prompt differs depending on your operating
-system:
-redis 127.0.0.1:6379>
-Installing Spring Roo
-Spring Roo is a tool that makes building Java web apps very easy. For example, it can create CRUD objects, UI objects, and
-support general app development.
-1. Download the latest Spring Roo GA release at:
-http://www.springsource.org/download
-2. Follow the installation instructions at:
-http://static.springsource.org/spring-roo/reference/html/intro.html#intro-installation
+
+    * On Ubuntu Linux:
+
+        sudo apt-get install redis-server
+
+    The server starts by default.
+
+    * On Mac: Follow the Redis installation instructions at:  
+    [http://redis.io/download](http://redis.io/download)
+
+    * On Windows: Download and install the Redis Server for Windows from:  
+    [https://github.com/dmajkic/redis/downloads](https://github.com/dmajkic/redis/downloads)
+
+    After uncompressing the files, start the server by executing:
+    redis-server.exe
+
+2. Verify it works by running redis-cli. You should see a command line but the prompt differs depending on your operating system:
+
+        redis 127.0.0.1:6379>
+
+
+Appendix F: Installing Spring Roo
+---------------------------------
+
+Spring Roo is a tool that makes building Java web apps very easy. For example, it can create CRUD objects, UI objects, and support general app development.
+
+1. Download the latest Spring Roo GA release at:  
+    [http://www.springsource.org/download](http://www.springsource.org/download)
+
+2. Follow the installation instructions at:  
+    [http://static.springsource.org/spring-roo/reference/html/intro.html#intro-installation](http://static.springsource.org/spring-roo/reference/html/intro.html#intro-installation)
