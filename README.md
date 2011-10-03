@@ -69,7 +69,7 @@ Note: Mac and Linux use forward-slashes ("/") for file paths, and Windows uses b
 1. Compile and install the app into the local Maven repository by running:
 
     cd helloheroku
-    mvn install
+    mvn package
 
     Maven creates startup scripts for the web app and installs a jar file in the local Maven repository. At the end of the output, you should see output similar to the following:
 
@@ -83,17 +83,7 @@ Note: Mac and Linux use forward-slashes ("/") for file paths, and Windows uses b
         [INFO] Final Memory: 11M/167M
         [INFO] ------------------------------------------------------------------------
 
-2. Set the REPO environment variable to the location of the local Maven repository so the dependencies can be located when the web process is started:
-
-    On Mac or Linux:
-
-        export REPO=~/.m2/repository
-
-    On Windows:
-
-    set REPO=%UserProfile%\.m2\repository
-
-3. Start the webapp process from the helloheroku directory:
+2. Start the webapp process from the helloheroku directory:
 
     On Mac or Linux:
 
@@ -111,11 +101,11 @@ Note: Mac and Linux use forward-slashes ("/") for file paths, and Windows uses b
 
     The Jetty web server process is now running.
 
-4. Navigate to [http://localhost:8080/](http://localhost:8080/) in your browser.  You should see the following message:
+3. Navigate to [http://localhost:8080/](http://localhost:8080/) in your browser.  You should see the following message:
 
         hello, world
 
-5. Press `CTRL-C` to stop the process.
+4. Press `CTRL-C` to stop the process.
 
 You are now ready to deploy this simple Java web app to Heroku.
 
@@ -421,7 +411,7 @@ We will test on a local PostgreSQL database before deploying to Heroku.
 
 2. Compile and install the app into the local Maven repository so that the webapp script can find it:
 
-        mvn install
+        mvn package
 
 3. Create the database schema locally by running:
 
@@ -536,7 +526,7 @@ In this tutorial, you will create a worker process, register it in your `Procfil
 
 1. Test the `Ticker` class locally by compiling and installing the app into the local Maven repository:
 
-        mvn install
+        mvn package
 
 2. Run the Ticker:
 
@@ -676,7 +666,7 @@ You will use Redis to cache the number of ticks to reduce the number of database
 
 2. Compile and install the app into the local Maven repository:
 
-        mvn install
+        mvn package
 
 3. Set the `REDISTOGO_URL` environment variable:
 
@@ -832,7 +822,6 @@ Finally, we will change the app packaging from a WAR file to a JAR file so that 
                     <goals><goal>assemble</goal></goals>
                     <configuration>
                         <assembleDirectory>target</assembleDirectory>
-                        <generateRepository>false</generateRepository>
                         <extraJvmArguments>-Xmx512m</extraJvmArguments>
                         <programs>
                             <program>
@@ -900,21 +889,19 @@ In the `src/main/java` directory, create a new file named `Main.java` containing
 
 ### Step 5: Test the App Locally
 
-1. Set the `DATABASE_URL` environment variable to point to the local PostgreSQL database URL, and set the `REPO` environment variable:
+1. Set the `DATABASE_URL` environment variable to point to the local PostgreSQL database URL:
 
     * On Mac or Linux:
 
         export DATABASE_URL=postgres://foo:foo@localhost/helloheroku
-        export REPO=~/.m2/repository
 
     * On Windows:
 
         set DATABASE_URL=postgres://foo:foo@localhost/helloheroku
-        set REPO=%UserProfile%\.m2\repository
 
 2. Compile and install the app into the local Maven repository:
 
-        mvn install
+        mvn package
 
 3. Start the app locally:
 
@@ -1144,7 +1131,8 @@ Redis is an open source, advanced key-value store.
     [https://github.com/dmajkic/redis/downloads](https://github.com/dmajkic/redis/downloads)
 
     After uncompressing the files, start the server by executing:
-    redis-server.exe
+
+        redis-server.exe
 
 2. Verify it works by running redis-cli. You should see a command line but the prompt differs depending on your operating system:
 
