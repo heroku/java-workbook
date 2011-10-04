@@ -46,7 +46,7 @@ In this tutorial, you will create a web app and deploy it to Heroku. You will us
 1. Using the terminal or command line, navigate to the directory where you want to create the new project (this can be in your user's home directory). In the lab where multiple people use the same computer, you should create a new sub-directory for your code.
 2. Run the following Maven command to generate a new project directory containing the basic web app structure, Maven dependencies and build definitions, and a Java class that will start an embedded Jetty web process:
 
-        mvn archetype:generate -DarchetypeGroupId=org.mortbay.jetty.archetype -DarchetypeArtifactId=jetty-archetype-assembler -DarchetypeVersion=7.5.0.RC0
+        mvn archetype:generate -DarchetypeGroupId=org.mortbay.jetty.archetype -DarchetypeArtifactId=jetty-archetype-assembler -DarchetypeVersion=7.5.1.v20110908
 
     After the dependencies are downloaded you will be prompted for some properties for your project.
 
@@ -64,7 +64,15 @@ In this tutorial, you will create a web app and deploy it to Heroku. You will us
 
 Note: Mac and Linux use forward-slashes ("/") for file paths, and Windows uses back-slashes ("\"). The workbook lists variants of commands for Mac, Linux, and Windows. However, references to file paths and sample output only use forward-slashes.
 
-### Step 2: Test the App Locally
+### Step 2: Edit your pom.xml file
+
+1. Find and remove this line from the pom.xml file that was just generated for you:
+
+    <generateRepository>false</generateRepository>
+
+This is necessary because this archetype relies on the local maven repository being present at runtime. This isn't the case on Heroku.
+
+### Step 3: Test the App Locally
 
 1. Compile and install the app into the local Maven repository by running:
 
@@ -110,7 +118,7 @@ Note: Mac and Linux use forward-slashes ("/") for file paths, and Windows uses b
 You are now ready to deploy this simple Java web app to Heroku.
 
 
-### Step 3: Deploy the Web App to Heroku
+### Step 4: Deploy the Web App to Heroku
 
 1. In the helloheroku project directory, create a new file named Procfile containing:
 
@@ -196,7 +204,7 @@ You are now ready to deploy this simple Java web app to Heroku.
     You should see `hello, world` on the web page.
 
 
-### Step 4: Scale the App on Heroku
+### Step 5: Scale the App on Heroku
 
 By default, the app runs on one dyno. To add more dynos, use the `heroku scale` command.
 
@@ -214,7 +222,7 @@ By default, the app runs on one dyno. To add more dynos, use the `heroku scale` 
 
         heroku scale web=1
 
-### Step 5: View App Logs on Heroku
+### Step 6: View App Logs on Heroku
 
 You can see everything that your app outputs to the console (STDOUT and STDERR) by running the heroku logs command.
 
