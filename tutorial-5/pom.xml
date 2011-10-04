@@ -420,6 +420,28 @@
     	</executions>
 	</plugin>
             <plugin>
+              <groupId>org.mortbay.jetty</groupId>
+              <artifactId>maven-jetty-jspc-plugin</artifactId>
+              <version>6.1.26</version>
+              <executions>
+                <execution>
+                  <id>jspc</id>
+                  <goals>
+                    <goal>jspc</goal>
+                  </goals>
+                  <configuration>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-war-plugin</artifactId>
+              <configuration>
+                <webXml>${basedir}/target/web.xml</webXml>
+              </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.1.1</version>
